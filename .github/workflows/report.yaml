@@ -2,7 +2,7 @@ name: Auto Report
 
 on:
   schedule:
-    - cron: "0 1 * * *"
+    - cron: "30 0 * * *"  # UTC时间0:30 -北京时间8:30
   workflow_dispatch:
 
 jobs:

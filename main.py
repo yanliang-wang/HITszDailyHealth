@@ -10,7 +10,7 @@ import subprocess
 # import re
 
 date_of_today = datetime.datetime.now()  # 当日日期
-daily_report_url = 'http://xgsm.hitsz.edu.cn/zhxy-xgzs/xg_mobile/shsj/loginChange'
+daily_report_url = 'https://student.hitsz.edu.cn/xg_mobile/loginChange'
 current_folder = os.path.split(os.path.realpath(__file__))[0]
 req_url = "https://www.baidu.com"
 chrome_options=Options()
@@ -24,7 +24,8 @@ def prepare_chrome_driver():
     version_num = str(version_str[0][9:11], encoding='utf-8')
     chrome_driver_path_dict = {'87': 'https://chromedriver.storage.googleapis.com/87.0.4280.88/chromedriver_linux64.zip',\
         '88':'https://chromedriver.storage.googleapis.com/88.0.4324.96/chromedriver_linux64.zip',\
-        '89':'https://chromedriver.storage.googleapis.com/89.0.4389.23/chromedriver_linux64.zip'}
+        '89':'https://chromedriver.storage.googleapis.com/89.0.4389.23/chromedriver_linux64.zip',\
+        '99':''}
     download_path = chrome_driver_path_dict[version_num]
     download_process = subprocess.Popen('wget ' + download_path, stdout=subprocess.PIPE,shell=True)
     download_process.wait()
@@ -76,38 +77,53 @@ def check_todays_report():
         return False
 
 def daily_report():
-    wait_element_by_id(driver, "mrsb", 30)
-    report_daily_button = driver.find_element_by_id("mrsb")
+    wait_element_by_class_name(driver, 'part_action_left', 30)
+    report_daily_button = driver.find_element_by_class_name("part_action_left")
     report_daily_button.click()
+
     # today_has_reported = True
-    today_has_reported = check_todays_report()
+    # today_has_reported = check_todays_report()
+    wait_element_by_class_name(driver, 'submit', 30)
+    time.sleep(5)   # 如果已提交，需要等一段时间后，submit的text才是已提交
+    submit_button = driver.find_element_by_class_name("submit")
+    today_has_reported = submit_button.text == '已提交' 
+    # print(today_has_reported)
+    print(submit_button.text)
     if not today_has_reported:
         print("今日尚未上报")
-        report_new_button = driver.find_element_by_class_name("right_btn")
-        report_new_button.click()
+        wait_element_by_id(driver, 'txfscheckbox', 30)
+        report_check_box = driver.find_element_by_id("txfscheckbox")
+        report_check_box.click()
+        submit_button.click()
+        time.sleep(5)
+        if submit_button.text == '已提交':
+            print('上报成功')
     else:
-        print("今日已上报，尝试修改并重新上报")
-        button = driver.find_element_by_xpath('/html/body/div[1]/div[2]/div[2]/div[2]')
-        button.click()
+        print("今日已上报")
+        # button = driver.find_element_by_xpath('/html/body/div[1]/div[2]/div[2]/div[2]')
+        # button.click()
 
-    time.sleep(1)
-    report_check_box = driver.find_element_by_id("txfscheckbox")
-    report_check_box.click()
     # time.sleep(1)
-    buttons = driver.find_elements_by_class_name("right_btn")
-    for bttn in buttons:
-        if bttn.text == "提交":
-            bttn.click()
-            print("确认提交")
-            break
+    # report_check_box = driver.find_element_by_id("txfscheckbox")
+    # report_check_box.click()
+    # # time.sleep(1)
+    # buttons = driver.find_elements_by_class_name("right_btn")
+    # for bttn in buttons:
+    #     if bttn.text == "提交":
+    #         bttn.click()
+    #         print("确认提交")
+    #         break
 
 def run(user_id, password):
     try:
         driver.get(daily_report_url)
-        button_div = driver.find_element_by_class_name("login-box")
-        button_logins = button_div.find_elements_by_tag_name("button")
-        button_login = button_logins[0]
-        button_login.click()
+        # button_div = driver.find_element_by_class_name("login-box")
+        # button_logins = button_div.find_elements_by_tag_name("button")
+        # button_login = button_logins[0]
+        # button_div = driver.find_element_by_class_name("button-sp-area")
+        button_logins = driver.find_element_by_class_name("ty_btn")
+        # button_login = button_logins[0]
+        button_logins.click()
         print("尝试登录")
         login(user_id, password)
         time.sleep(0.5)
